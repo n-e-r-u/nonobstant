@@ -1,5 +1,9 @@
 # Journal des versions
 
+## 0.4.0
+
+Page de consultation publique : état du fonds, arrêtés en cours avec leurs mesures citées et leur source, recherche d'une adresse dans le coffre. Thème clair et sombre, sans dépendance ni suivi. Unité systemd et consignes de sauvegarde dans le README.
+
 ## 0.3.0
 
 Veille des numéros de legal team : lecture des pages de collectifs, candidats avec leur contexte et leur source, copie au coffre, indice de rattachement, signalement des numéros disparus. Aucun numéro n'est publié sans validation humaine, et un numéro n'est retenu que si son entourage parle d'antirépression.

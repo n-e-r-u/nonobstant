@@ -89,6 +89,41 @@ Lecture publique, écriture avec l'en-tête `X-API-Key`.
 
 Une source archivée deux fois le même jour n'est pas retéléchargée. Deux copies de contenu identique partagent le même fichier sur le disque.
 
+## Déploiement
+
+Le serveur tient dans un processus. Un service systemd, un reverse proxy devant, rien d'autre.
+
+```ini
+# /etc/systemd/system/nonobstant.service
+[Unit]
+Description=Nonobstant
+After=network.target
+
+[Service]
+Type=simple
+User=nonobstant
+WorkingDirectory=/opt/nonobstant/app
+Environment=PORT=8090
+Environment=DATA_DIR=/opt/nonobstant/data
+EnvironmentFile=/opt/nonobstant/env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/nonobstant/data
+
+[Install]
+WantedBy=multi-user.target
+```
+
+`API_KEY` va dans `/opt/nonobstant/env`, en lecture pour le seul utilisateur du service, jamais dans l'unité ni dans le dépôt.
+
+Ce qu'il faut sauvegarder : `DATA_DIR` en entier. La base se reconstruit en partie, les copies du coffre non : ce sont elles qui ne se retrouvent nulle part ailleurs une fois la source disparue.
+
+Le paquet `poppler-utils` rend les recueils PDF lisibles. Sans lui la veille tourne, mais elle ne voit que les titres.
+
 ## Vérifications
 
 ```sh

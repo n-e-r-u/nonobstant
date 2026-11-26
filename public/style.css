@@ -1,0 +1,35 @@
+:root {
+  --fond: #0b0e14; --carte: #141822; --bord: #232936; --texte: #e8eaf0; --doux: #9aa3b4;
+  --accent: #c2181f; --ok: #0f7a4a; --attente: #b35c00; --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --fond: #f7f7f9; --carte: #ffffff; --bord: #dcdfe6; --texte: #14171f; --doux: #5a6273; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fond); color: var(--texte); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.enveloppe { max-width: 56rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+header { border-bottom: 1px solid var(--bord); padding-bottom: 1.25rem; margin-bottom: 2rem; }
+h1 { font-size: 1.9rem; margin: 0 0 .35rem; letter-spacing: -.02em; }
+h1 span { color: var(--accent); }
+.sous { color: var(--doux); margin: 0; max-width: 42rem; }
+h2 { font-size: 1.1rem; margin: 2.5rem 0 .9rem; text-transform: uppercase; letter-spacing: .08em; color: var(--doux); }
+.chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .75rem; }
+.chiffre { background: var(--carte); border: 1px solid var(--bord); border-radius: 10px; padding: .85rem 1rem; }
+.chiffre b { display: block; font-size: 1.6rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.chiffre span { color: var(--doux); font-size: .82rem; }
+.fiche { background: var(--carte); border: 1px solid var(--bord); border-left: 3px solid var(--accent); border-radius: 10px; padding: .9rem 1.1rem; margin-bottom: .75rem; }
+.fiche.partiel { border-left-color: var(--attente); }
+.fiche h3 { margin: 0 0 .3rem; font-size: 1rem; }
+.fiche p { margin: .25rem 0; }
+.quand { color: var(--doux); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.mesure { margin: .4rem 0 0; padding-left: .75rem; border-left: 2px solid var(--bord); color: var(--doux); font-size: .92rem; }
+.etiq { display: inline-block; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; padding: .12rem .45rem;
+  border-radius: 999px; border: 1px solid var(--bord); color: var(--doux); vertical-align: .1em; }
+a { color: inherit; text-decoration-color: var(--doux); text-underline-offset: 3px; }
+form { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+input, button { font: inherit; padding: .55rem .8rem; border-radius: 8px; border: 1px solid var(--bord); background: var(--carte); color: var(--texte); }
+input { flex: 1 1 18rem; min-width: 0; }
+button { cursor: pointer; border-color: var(--accent); }
+.vide { color: var(--doux); }
+.sha { font-family: var(--mono); font-size: .78rem; color: var(--doux); word-break: break-all; }
+footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--bord); color: var(--doux); font-size: .9rem; }
