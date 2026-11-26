@@ -32,6 +32,18 @@ Au premier passage sur une source, tout ce qui s'y trouve déjà sert de référ
 
 Deux limites assumées. Un arrêté visant plusieurs communes donne un arrêté par commune, parce qu'une zone est une commune ou un département. Un couvre-feu de plusieurs nuits ne tient pas dans un seul début et une seule fin : la période couvre alors toute la plage, jusqu'au matin suivant le dernier jour, et la phrase de l'arrêté, citée telle quelle, dit les vrais horaires. Avertir un peu trop largement est le bon sens du risque pour quelqu'un qui est dans la rue.
 
+## La veille des numéros de legal team
+
+Il n'existe aucun registre. Un numéro de legal team est annoncé mobilisation par mobilisation, sur le site d'un collectif antirépression, d'un média local indépendant ou d'un syndicat, et il change d'une manifestation à l'autre. La veille lit les pages qu'on lui donne (`kind: "legal"`) et en tire des candidats, chacun avec son numéro normalisé, la fenêtre de texte qui l'entoure, un indice de rattachement quand la page en donne un, la source et une copie au coffre.
+
+Rien n'est publié tout seul, et ce n'est pas une précaution de principe : un numéro faux envoie quelqu'un en garde à vue appeler le vide. La validation reste humaine.
+
+Un numéro n'est retenu que si son entourage parle d'antirépression (legal team, garde à vue, interpellation, avocat·e, permanence juridique). Sans ce filtre, la veille ramasserait le numéro d'un secrétariat, d'un commerce, ou d'une personne privée citée dans un article voisin.
+
+Un numéro qui disparaît de sa page n'est pas effacé : il passe en `disparu`, parce qu'une disparition est elle-même une information.
+
+La liste des pages surveillées n'est pas dans ce dépôt. Elle vit dans la configuration du serveur, pour ne pas publier un annuaire des collectifs à surveiller.
+
 ## Mise en route
 
 Node 22.13 ou plus récent, aucune dépendance à installer.
@@ -66,8 +78,10 @@ Lecture publique, écriture avec l'en-tête `X-API-Key`.
 | `GET /api/coffre/{id}` | fiche publique d'une copie |
 | `GET /api/coffre/{id}/copie` | document complet (clé requise) |
 | `GET /api/arretes?etat=&depuis=&limit=` | arrêtés en cours ; `etat` vaut `complet` ou `partiel` |
+| `GET /api/legal?status=&depuis=&limit=` | candidats legal team (clé) ; `status` parmi `neuf`, `propose`, `ignore`, `disparu` |
+| `POST /api/legal/{id}` | change l'état d'un candidat : `{ status }` (clé) |
 | `GET /api/veille` | état de la veille et liste des sources (clé) |
-| `POST /api/veille/sources` | ajoute une source : `{ url, dep?, label?, kind? }` avec `kind` parmi `pref`, `raa`, `page` (clé) |
+| `POST /api/veille/sources` | ajoute une source : `{ url, dep?, label?, kind? }` avec `kind` parmi `pref`, `raa`, `page`, `legal` (clé) |
 | `POST /api/veille/sources/prefectures` | ajoute les 101 préfectures (clé) |
 | `POST /api/veille/sources/{id}/test` | relit une source tout de suite (clé) |
 | `DELETE /api/veille/sources/{id}` | retire une source (clé) |

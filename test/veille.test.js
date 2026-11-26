@@ -14,7 +14,6 @@ process.env.VEILLE = '0';          // pas de tour automatique pendant les tests
 process.env.VEILLE_PAGE_GAP_MS = '1';
 const V = require('../src/veille/arretes');
 const C = require('../src/coffre');
-const { parisMs } = require('../src/time');
 
 const AN = new Date().getFullYear();
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'][new Date().getMonth()];

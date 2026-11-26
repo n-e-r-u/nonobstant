@@ -1,5 +1,9 @@
 # Journal des versions
 
+## 0.3.0
+
+Veille des numéros de legal team : lecture des pages de collectifs, candidats avec leur contexte et leur source, copie au coffre, indice de rattachement, signalement des numéros disparus. Aucun numéro n'est publié sans validation humaine, et un numéro n'est retenu que si son entourage parle d'antirépression.
+
 ## 0.2.0
 
 Veille des arrêtés préfectoraux : 101 sites surveillés, pages de recueil repérées seules, documents téléchargés une fois et versés au coffre, lecture des recueils PDF, et extraction structurée (département, commune, début, fin, mesures). Un arrêté dont la zone ou la période ne se lisent pas est marqué partiel plutôt que complété au jugé.

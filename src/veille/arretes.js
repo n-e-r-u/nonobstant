@@ -16,6 +16,7 @@ const { garder } = require('../coffre');
 const { discoverPref } = require('./pages');
 const { PREFECTURES } = require('./prefectures');
 const { lireArretes } = require('./extraction');
+const L = require('./legal');
 
 q(`CREATE TABLE IF NOT EXISTS veille_src(id TEXT PRIMARY KEY, dep TEXT, url TEXT UNIQUE, label TEXT, kind TEXT DEFAULT 'page',
   t INTEGER, last INTEGER, ok INTEGER, err TEXT, n INTEGER, etag TEXT, lastmod TEXT, seen TEXT, pages TEXT)`).run();
@@ -186,7 +187,9 @@ async function verifierPage(s, now) {
     .run(now, liens.length, res.etag, res.lastmod, JSON.stringify(vus.slice(-SEEN_MAX)), s.id);
   return { mis, liens: liens.length, premiere };
 }
-const verifier = (s, now = Date.now()) => s.kind === 'pref' ? verifierPref(s, now) : verifierPage(s, now);
+// Une source « legal » n'est pas une liste de liens à suivre mais une page dont on lit le texte : son traitement est à part.
+const verifier = (s, now = Date.now()) => s.kind === 'pref' ? verifierPref(s, now)
+  : s.kind === 'legal' ? L.lireSource(s, lirePage, now) : verifierPage(s, now);
 
 let enCours = false;
 async function tick() {
@@ -217,7 +220,7 @@ async function srcAdd(b) {
   if (q('SELECT 1 FROM veille_src WHERE url=?').get(url)) return [409, { error: 'Cette source est déjà surveillée.' }];
   if (q('SELECT COUNT(*) n FROM veille_src').get().n >= 400) return [400, { error: '400 sources au plus.' }];
   const id = crypto.randomBytes(6).toString('base64url');
-  const kind = ['pref', 'raa', 'page'].includes(b.kind) ? b.kind : 'page';
+  const kind = ['pref', 'raa', 'page', 'legal'].includes(b.kind) ? b.kind : 'page';
   q('INSERT INTO veille_src(id,dep,url,label,t,kind) VALUES(?,?,?,?,?,?)').run(id, dep, url, String(b.label || '').trim().slice(0, 60), Date.now(), kind);
   const r = await verifier(srcRow(id));
   return [201, { ...srcView(srcRow(id)), ...(r.error ? { error: r.error } : {}) }];
@@ -249,9 +252,10 @@ function arretes({ etat = null, depuis = 0, limit = 100, now = Date.now() } = {}
   return q(`SELECT * FROM arrete WHERE ${cond.join(' AND ')} ORDER BY t DESC LIMIT ?`).all(...args, Math.min(+limit || 100, 500)).map(vue);
 }
 const etat = () => ({ sources: q('SELECT COUNT(*) n FROM veille_src').get().n, prefectures: PREFECTURES.length,
+  legal: L.etatLegal(),
   file: docQueue(), pdf: pdfReady(), every: EVERY, prefEvery: PREF_EVERY,
   complets: q("SELECT COUNT(*) n FROM arrete WHERE etat='complet'").get().n,
   partiels: q("SELECT COUNT(*) n FROM arrete WHERE etat='partiel'").get().n });
 
-module.exports = { tick, verifier, extractLinks, motsCles, lireDoc, lireDocs, docQueue, noter, idArrete,
+module.exports = { tick, verifier, legal: L, extractLinks, motsCles, lireDoc, lireDocs, docQueue, noter, idArrete,
   sources, srcAdd, srcAddAll, srcDel, srcTest, arretes, etat, vue };

@@ -21,6 +21,20 @@ async function apiRoutes(req, res, url) {
     return send(res, 200, { arretes: V.arretes({ etat, depuis: url.searchParams.get('depuis'), limit: num(url.searchParams.get('limit'), 100, 500) }) });
   }
 
+  // ---- Numéros de legal team : jamais publiés tout seuls, ils alimentent une file de validation ----
+  if (req.method === 'GET' && p === '/api/legal') {
+    if (!keyOk(req)) return send(res, 403, { error: 'Clé incorrecte.' });
+    const status = url.searchParams.get('status');
+    if (status && !['neuf', 'propose', 'ignore', 'disparu'].includes(status)) return send(res, 400, { error: 'État inconnu.' });
+    return send(res, 200, { ...V.legal.etatLegal(), candidats: V.legal.legalCandidats({ status, depuis: url.searchParams.get('depuis'), limit: num(url.searchParams.get('limit'), 100, 500) }) });
+  }
+  const ml = p.match(/^\/api\/legal\/([\w-]{6,24})$/);
+  if (ml && req.method === 'POST') {
+    if (!keyOk(req)) return send(res, 403, { error: 'Clé incorrecte.' });
+    let b; try { b = await readJson(req); } catch (e) { return send(res, 400, { error: e.message }); }
+    return send(res, ...V.legal.marquer(ml[1], String(b.status || '')));
+  }
+
   // ---- Veille : la configuration et les relances demandent la clé ----
   if (p.startsWith('/api/veille')) {
     if (!keyOk(req)) return send(res, 403, { error: 'Clé incorrecte.' });
