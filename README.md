@@ -18,6 +18,20 @@ La copie complète reste sur le disque du serveur et ne sort qu'avec la clé d'�
 
 Une source qui ne répond plus n'est pas oubliée : l'échec est enregistré avec sa date, ce qui situe le moment où elle a disparu.
 
+## La veille des arrêtés
+
+Les 101 sites de préfecture sont relus régulièrement. Les pages utiles de chaque site (accueil, actualités, communiqués, recueil des actes administratifs de l'année et du mois) sont repérées seules une fois par jour, parce que ces sites partagent le même moteur mais pas la même arborescence. Les documents qui apparaissent et dont le titre parle de manifestation, de périmètre, de couvre-feu ou de drones sont téléchargés, versés au coffre, lus, puis transformés en arrêtés structurés : département, commune, début, fin, mesures. Les recueils ont des titres muets (« Recueil spécial n° 331 »), ceux-là sont lus systématiquement.
+
+Chaque arrêté sort dans un de deux états.
+
+**complet** : la zone, la période et au moins une mesure se lisent sans ambiguïté. Publiable tel quel.
+
+**partiel** : il manque quelque chose, et c'est dit (`manque`). Rien n'est complété au jugé. Mieux vaut un arrêté absent qu'un arrêté inventé : dans la rue, une date fausse se paie.
+
+Au premier passage sur une source, tout ce qui s'y trouve déjà sert de référence sans être lu, sinon le premier tour téléchargerait des années de recueils.
+
+Deux limites assumées. Un arrêté visant plusieurs communes donne un arrêté par commune, parce qu'une zone est une commune ou un département. Un couvre-feu de plusieurs nuits ne tient pas dans un seul début et une seule fin : la période couvre alors toute la plage, jusqu'au matin suivant le dernier jour, et la phrase de l'arrêté, citée telle quelle, dit les vrais horaires. Avertir un peu trop largement est le bon sens du risque pour quelqu'un qui est dans la rue.
+
 ## Mise en route
 
 Node 22.13 ou plus récent, aucune dépendance à installer.
@@ -33,6 +47,9 @@ API_KEY="une-clé-de-24-caractères-au-moins" node server.js
 | `DATA_DIR` | dossier des données et des copies | `./data` |
 | `FETCH_MAX` | taille maximale d'un document archivé | 25 Mo |
 | `EXTRACT_MAX` | longueur de l'extrait public | 5000 |
+| `VEILLE` | `0` arrête la veille (utile en test) | active |
+| `VEILLE_EVERY_MS` | intervalle de relecture d'une page | 20 min |
+| `VEILLE_PREF_EVERY_MS` | intervalle de relecture d'un site de préfecture | 30 min |
 
 Le paquet `poppler-utils` (commande `pdftotext`) est facultatif. Sans lui, les PDF sont archivés mais pas lus.
 
@@ -48,6 +65,13 @@ Lecture publique, écriture avec l'en-tête `X-API-Key`.
 | `GET /api/coffre/recent?tag=&limit=` | dernières copies |
 | `GET /api/coffre/{id}` | fiche publique d'une copie |
 | `GET /api/coffre/{id}/copie` | document complet (clé requise) |
+| `GET /api/arretes?etat=&depuis=&limit=` | arrêtés en cours ; `etat` vaut `complet` ou `partiel` |
+| `GET /api/veille` | état de la veille et liste des sources (clé) |
+| `POST /api/veille/sources` | ajoute une source : `{ url, dep?, label?, kind? }` avec `kind` parmi `pref`, `raa`, `page` (clé) |
+| `POST /api/veille/sources/prefectures` | ajoute les 101 préfectures (clé) |
+| `POST /api/veille/sources/{id}/test` | relit une source tout de suite (clé) |
+| `DELETE /api/veille/sources/{id}` | retire une source (clé) |
+| `POST /api/veille/tour` | force un tour de veille (clé) |
 
 Une source archivée deux fois le même jour n'est pas retéléchargée. Deux copies de contenu identique partagent le même fichier sur le disque.
 
@@ -55,7 +79,7 @@ Une source archivée deux fois le même jour n'est pas retéléchargée. Deux co
 
 ```sh
 node --test test/*.test.js
-npx eslint -c eslint.config.js --no-config-lookup server.js src test tools
+npx eslint -c eslint.config.js --no-config-lookup server.js src test
 ```
 
 ## Licence

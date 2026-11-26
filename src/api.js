@@ -4,6 +4,7 @@ const fs = require('fs');
 const { send, readJson, keyOk, NEXT } = require('./http');
 const { API_KEY } = require('./config');
 const C = require('./coffre');
+const V = require('./veille/arretes');
 
 const num = (v, def, max) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.min(Math.floor(n), max) : def; };
 
@@ -12,6 +13,29 @@ async function apiRoutes(req, res, url) {
   if (!p.startsWith('/api/')) return NEXT;
 
   if (req.method === 'GET' && p === '/api/sante') return send(res, 200, { ok: true, ecriture: !!API_KEY, pdf: C.pdfReady() });
+
+  // ---- Arrêtés : lecture publique. « complet » est publiable tel quel, « partiel » demande une main humaine. ----
+  if (req.method === 'GET' && p === '/api/arretes') {
+    const etat = url.searchParams.get('etat');
+    if (etat && !['complet', 'partiel'].includes(etat)) return send(res, 400, { error: 'État inconnu (complet ou partiel).' });
+    return send(res, 200, { arretes: V.arretes({ etat, depuis: url.searchParams.get('depuis'), limit: num(url.searchParams.get('limit'), 100, 500) }) });
+  }
+
+  // ---- Veille : la configuration et les relances demandent la clé ----
+  if (p.startsWith('/api/veille')) {
+    if (!keyOk(req)) return send(res, 403, { error: 'Clé incorrecte.' });
+    if (req.method === 'GET' && p === '/api/veille') return send(res, 200, { ...V.etat(), sources: V.sources() });
+    if (req.method === 'POST' && p === '/api/veille/tour') { await V.tick(); return send(res, 200, V.etat()); }
+    if (req.method === 'POST' && p === '/api/veille/sources/prefectures') return send(res, ...V.srcAddAll());
+    if (req.method === 'POST' && p === '/api/veille/sources') {
+      let b; try { b = await readJson(req); } catch (e) { return send(res, 400, { error: e.message }); }
+      return send(res, ...await V.srcAdd(b));
+    }
+    const m2 = p.match(/^\/api\/veille\/sources\/([\w-]{1,16})(\/test)?$/);
+    if (m2 && req.method === 'POST' && m2[2]) return send(res, ...await V.srcTest(m2[1]));
+    if (m2 && req.method === 'DELETE' && !m2[2]) return send(res, ...V.srcDel(m2[1]));
+    return send(res, 404, { error: 'Route inconnue.' });
+  }
 
   // ---- Coffre des preuves ----
   if (p === '/api/coffre' && req.method === 'POST') {
