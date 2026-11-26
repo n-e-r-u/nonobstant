@@ -1,0 +1,6 @@
+# Données produites par le serveur (jamais dans le dépôt)
+/data/
+node_modules/
+*.log
+*.tmp
+.DS_Store
