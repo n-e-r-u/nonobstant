@@ -1,5 +1,9 @@
 # Journal des versions
 
+## 0.5.1
+
+Le serveur n'écoutait pas derrière Passenger : il ne démarrait que si son fichier était le module principal, ce qui est vrai sous systemd mais faux quand un script intermédiaire le charge. Les requêtes restaient alors sans réponse jusqu'à expiration du délai.
+
 ## 0.5.0
 
 L'interface reprend un système de design existant : fond maillé, titres en Ortland, cartes blanches à contour 2px et ombre dure, pastilles jaunes. États vides qui disent ce qui apparaîtra là, retour visible pendant une recherche, contrastes mesurés et tous au-dessus du seuil AA, lien d'évitement, respect de la préférence pour moins d'animation.

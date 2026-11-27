@@ -39,7 +39,10 @@ const server = http.createServer(async (req, res) => {
 server.headersTimeout = 20_000;
 server.requestTimeout = 60_000;
 
-if (require.main === module) {
+// Démarrage. Sous systemd, ce fichier est le module principal. Sous Passenger, il est chargé par un script intermédiaire,
+// donc require.main ne le désigne pas : sans cette seconde condition le serveur n'écoute jamais et la requête reste pendante.
+const sousPassenger = typeof PhusionPassenger !== 'undefined';
+if (require.main === module || sousPassenger) {
   server.listen(PORT, () => console.log('Nonobstant écoute sur le port ' + PORT));
   for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { console.log('arrêt'); server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 3000).unref(); });
 }

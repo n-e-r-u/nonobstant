@@ -1,6 +1,6 @@
 {
   "name": "nonobstant",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Fonds documentaire : sources archivées et horodatées, veille des actes administratifs, API de consultation.",
   "main": "server.js",
   "scripts": { "start": "node server.js", "test": "node --test test/*.test.js" },
