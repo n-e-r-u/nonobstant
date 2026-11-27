@@ -131,6 +131,12 @@ node --test test/*.test.js
 npx eslint -c eslint.config.js --no-config-lookup server.js src test
 ```
 
+## Interface
+
+La page de consultation suit un système de design externe : jetons de couleur, deux familles de caractères, cartes à contour épais et ombre dure, fond maillé. Les variables CSS portent les noms des jetons, pour qu'on retrouve la source d'une valeur. Un seul thème, parce que le système n'en définit pas de sombre.
+
+`public/fonts/Ortland.woff2` est la police des titres, de la fonderie Limitype, gratuite y compris en usage commercial. Inter vient de Google Fonts ; sans accès réseau, le repli système s'applique et la mise en page ne bouge pas. Les huit paires texte sur fond de la page ont été mesurées : la plus faible est à 5,7:1, au-dessus du seuil AA de 4,5:1.
+
 ## Licence
 
 AGPL-3.0-or-later. Voir `LICENSE`.

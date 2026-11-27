@@ -5,28 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nonobstant</title>
 <meta name="description" content="Fonds documentaire : sources archivées et horodatées, veille des actes administratifs.">
+<meta name="theme-color" content="#cdb8ff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+<div class="mesh"></div>
+<a class="saut" href="#contenu">Aller au contenu</a>
 <div class="enveloppe">
 <header>
-  <h1>Nonobstant<span>.</span></h1>
-  <p class="sous">Ce serveur garde la trace de ce qu'une source disait le jour où elle a été citée, et suit la publication
+  <h1>Nonobstant<span class="point">.</span></h1>
+  <p class="chapeau">Ce serveur garde la trace de ce qu'une source disait le jour où elle a été citée, et suit la publication
   des actes administratifs. Une page effacée, un chiffre corrigé sans mention, un démenti : nonobstant, la copie est là, datée.</p>
 </header>
 
-<h2>État</h2>
-<div class="chiffres" id="chiffres"><p class="vide">Lecture…</p></div>
+<main id="contenu">
+<h2>État du fonds</h2>
+<div class="chiffres" id="chiffres"><p class="note">Lecture en cours…</p></div>
 
 <h2>Arrêtés en cours</h2>
-<div id="arretes"><p class="vide">Lecture…</p></div>
+<div class="liste" id="arretes"><p class="note">Lecture en cours…</p></div>
 
 <h2>Chercher une source dans le coffre</h2>
-<form id="recherche">
-  <input type="url" id="url" placeholder="https://… l'adresse de la source" required>
-  <button type="submit">Chercher</button>
+<form id="recherche" novalidate>
+  <div class="champ">
+    <label for="url">Adresse de la source</label>
+    <input type="url" id="url" name="url" placeholder="https://exemple.gouv.fr/la-page" autocomplete="url" required>
+  </div>
+  <button type="submit" id="chercher">Chercher</button>
 </form>
-<div id="copies"></div>
+<div class="liste" id="copies" aria-live="polite"></div>
+</main>
 
 <footer>
   <p>Le coffre publie la date, l'empreinte et un extrait de chaque copie. Le document complet reste sur le serveur :
@@ -36,15 +47,18 @@
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const dateHeure = ms => new Date(ms).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' });
-const jour = ms => new Date(ms).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' });
-const heure = ms => new Date(ms).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
-const poids = o => o >= 1e6 ? (o / 1e6).toFixed(1) + ' Mo' : o >= 1e3 ? Math.round(o / 1e3) + ' ko' : o + ' o';
+const P = { timeZone: 'Europe/Paris' };
+const dateHeure = ms => new Date(ms).toLocaleString('fr-FR', { ...P, dateStyle: 'long', timeStyle: 'short' });
+const jour = ms => new Date(ms).toLocaleDateString('fr-FR', { ...P, weekday: 'long', day: 'numeric', month: 'long' });
+const heure = ms => new Date(ms).toLocaleTimeString('fr-FR', { ...P, hour: '2-digit', minute: '2-digit' });
+const memeJour = (a, b) => new Date(a).toLocaleDateString('sv-SE', P) === new Date(b).toLocaleDateString('sv-SE', P);
+const poids = o => o >= 1e6 ? (o / 1e6).toFixed(1).replace('.', ',') + ' Mo' : o >= 1e3 ? Math.round(o / 1e3) + ' ko' : o + ' o';
 const hote = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
+const MESURE = { manif: 'manifestation', perimetre: 'périmètre', couvre: 'couvre-feu', transport: 'circulation', consigne: 'consigne', autre: 'autre' };
+const vide = (t, quoi) => '<div class="carte"><p class="note"><strong>' + t + '</strong><br>' + quoi + '</p></div>';
 
 async function json(p) { const r = await fetch(p); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
-
-function chiffre(n, mot) { return '<div class="chiffre"><b>' + n + '</b><span>' + mot + '</span></div>'; }
+const chiffre = (n, mot) => '<div class="carte chiffre"><b>' + esc(n) + '</b><span>' + esc(mot) + '</span></div>';
 
 async function etat() {
   try {
@@ -52,22 +66,26 @@ async function etat() {
     const complets = a.arretes.filter(x => x.etat === 'complet').length;
     $('#chiffres').innerHTML = chiffre(c.copies.length, c.copies.length > 1 ? 'copies au coffre' : 'copie au coffre')
       + chiffre(complets, complets > 1 ? 'arrêtés en cours' : 'arrêté en cours')
-      + chiffre(a.arretes.length - complets, 'à compléter')
-      + chiffre(s.pdf ? 'oui' : 'non', 'lecture des PDF');
-  } catch { $('#chiffres').innerHTML = '<p class="vide">Serveur injoignable.</p>'; }
+      + chiffre(a.arretes.length - complets, 'à compléter à la main')
+      + chiffre(s.pdf ? 'oui' : 'non', 'lecture des recueils PDF');
+  } catch { $('#chiffres').innerHTML = vide('Serveur injoignable.', 'Réessaie dans un moment.'); }
 }
 
 function ficheArrete(a) {
   const ou = a.commune ? esc(a.commune) : 'Département ' + esc(a.dep);
-  const quand = a.start ? (new Date(a.start).toDateString() === new Date(a.end).toDateString()
-    ? jour(a.start) + ', de ' + heure(a.start) + ' à ' + heure(a.end)
-    : 'du ' + jour(a.start) + ' ' + heure(a.start) + ' au ' + jour(a.end) + ' ' + heure(a.end)) : 'période à préciser';
-  return '<div class="fiche ' + (a.etat === 'partiel' ? 'partiel' : '') + '">'
-    + '<h3>' + ou + ' <span class="etiq">' + esc(a.etat === 'partiel' ? (a.manque || 'à compléter') : a.items[0].k) + '</span></h3>'
-    + '<p class="quand">' + esc(quand) + '</p>'
-    + a.items.map(i => '<p class="mesure">' + esc(i.text) + '</p>').join('')
-    + '<p class="quand">Source : <a href="' + esc(a.src) + '" rel="noopener nofollow">' + esc(hote(a.src)) + '</a></p>'
-    + '</div>';
+  const partiel = a.etat === 'partiel';
+  const quand = a.start
+    ? (memeJour(a.start, a.end) ? jour(a.start) + ', de ' + heure(a.start) + ' à ' + heure(a.end)
+      : 'du ' + jour(a.start) + ' à ' + heure(a.start) + ' au ' + jour(a.end) + ' à ' + heure(a.end))
+    : 'Période à préciser';
+  const etiq = partiel ? '<span class="pastille attente">À compléter</span>'
+    : '<span class="pastille">' + esc(MESURE[a.items[0].k] || a.items[0].k) + '</span>';
+  return '<article class="carte fiche">'
+    + '<h3>' + ou + etiq + '</h3>'
+    + '<p class="quand">' + esc(quand) + (partiel && a.manque ? ' · ' + esc(a.manque) : '') + '</p>'
+    + '<ul class="mesures">' + a.items.map(i => '<li>' + esc(i.text) + '</li>').join('') + '</ul>'
+    + '<p class="pied">Source : <a href="' + esc(a.src) + '" rel="noopener nofollow">' + esc(hote(a.src)) + '</a></p>'
+    + '</article>';
 }
 
 async function arretes() {
@@ -76,24 +94,33 @@ async function arretes() {
     $('#arretes').innerHTML = list.length
       ? list.sort((x, y) => (x.etat === y.etat ? 0 : x.etat === 'complet' ? -1 : 1)
           || (x.start && y.start ? x.start - y.start : y.t - x.t)).map(ficheArrete).join('')
-      : '<p class="vide">Aucun arrêté en cours.</p>';
-  } catch { $('#arretes').innerHTML = '<p class="vide">Lecture impossible.</p>'; }
+      : vide('Aucun arrêté en cours.', 'Les arrêtés apparaissent ici dès qu’une préfecture en publie un qui concerne une manifestation, un périmètre, un couvre-feu ou des drones.');
+  } catch { $('#arretes').innerHTML = vide('Lecture impossible.', 'Le serveur n’a pas répondu.'); }
+}
+
+function ficheCopie(c) {
+  const titre = esc(c.title || hote(c.url));
+  if (c.status !== 'ok') return '<article class="carte fiche"><h3>' + titre + '<span class="pastille absente">Source éteinte</span></h3>'
+    + '<p class="quand">Dernière tentative le ' + dateHeure(c.t) + '</p>'
+    + '<p class="pied alerte">La source ne répondait plus : ' + esc(c.err || 'sans détail') + '</p></article>';
+  return '<article class="carte fiche"><h3>' + titre + '</h3>'
+    + '<p class="quand">Copie du ' + dateHeure(c.t) + (c.bytes ? ' · ' + poids(c.bytes) : '') + (c.mime ? ' · ' + esc(c.mime) : '') + '</p>'
+    + (c.extrait ? '<ul class="mesures"><li>' + esc(c.extrait.slice(0, 420)) + (c.extrait.length > 420 ? '…' : '') + '</li></ul>' : '')
+    + '<p class="pied sha">Empreinte sha256 <span class="marque">' + esc(c.sha256) + '</span></p></article>';
 }
 
 $('#recherche').addEventListener('submit', async e => {
   e.preventDefault();
-  const u = $('#url').value.trim();
-  $('#copies').innerHTML = '<p class="vide">Recherche…</p>';
+  const u = $('#url').value.trim(), bouton = $('#chercher');
+  if (!u) { $('#copies').innerHTML = vide('Il manque l’adresse.', 'Colle l’adresse complète de la source, telle qu’elle a été citée.'); return; }
+  bouton.disabled = true; bouton.textContent = 'Recherche…';
+  $('#copies').innerHTML = '<p class="note">Recherche en cours…</p>';
   try {
     const { copies } = await json('/api/coffre?url=' + encodeURIComponent(u));
-    $('#copies').innerHTML = copies.length ? copies.map(c => '<div class="fiche ' + (c.status === 'ok' ? '' : 'partiel') + '">'
-      + '<h3>' + esc(c.title || hote(c.url)) + '</h3>'
-      + '<p class="quand">Copie du ' + dateHeure(c.t) + (c.bytes ? ' · ' + poids(c.bytes) : '') + (c.mime ? ' · ' + esc(c.mime) : '') + '</p>'
-      + (c.status === 'ok' ? '<p class="sha">sha256 ' + esc(c.sha256) + '</p>'
-        : '<p class="mesure">La source ne répondait plus : ' + esc(c.err || '') + '</p>')
-      + (c.extrait ? '<p class="mesure">' + esc(c.extrait.slice(0, 400)) + (c.extrait.length > 400 ? '…' : '') + '</p>' : '')
-      + '</div>').join('') : '<p class="vide">Aucune copie de cette adresse.</p>';
-  } catch { $('#copies').innerHTML = '<p class="vide">Recherche impossible.</p>'; }
+    $('#copies').innerHTML = copies.length ? copies.map(ficheCopie).join('')
+      : vide('Aucune copie de cette adresse.', 'Le coffre ne garde que les sources qui lui ont été confiées. Vérifie l’adresse exacte, paramètres compris.');
+  } catch { $('#copies').innerHTML = vide('Recherche impossible.', 'Le serveur n’a pas répondu.'); }
+  finally { bouton.disabled = false; bouton.textContent = 'Chercher'; }
 });
 
 etat(); arretes();

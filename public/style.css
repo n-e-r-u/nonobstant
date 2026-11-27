@@ -1,35 +1,101 @@
+/* Design system NERU. Les noms des variables sont ceux des jetons, pour qu'on retrouve la source d'une valeur.
+   Un seul thème : le système n'en définit pas de sombre, et en inventer un trahirait la marque. */
 :root {
-  --fond: #0b0e14; --carte: #141822; --bord: #232936; --texte: #e8eaf0; --doux: #9aa3b4;
-  --accent: #c2181f; --ok: #0f7a4a; --attente: #b35c00; --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: light;
+  --page-lavender: #f1e9ff; --mesh-base: #f4ecff;
+  --mesh-pink: #ffb8dc; --mesh-blue: #b9cfff; --mesh-violet: #d3bcff; --mesh-mint: #b8f0e6;
+  --sticker-white: #ffffff; --card-cream: #fffdf5; --card-yellow: #fff7c2; --card-mint: #d6fbef;
+  --card-lavender: #f4ecff; --card-pink: #ffe1ef;
+  --ink-strong: #0a0a0a; --ink-heading: #1a1a1a; --ink-body: #4a4b56; --card-line: #1e1e1e;
+  --accent-violet: #7b3fe4; --hot: #cf2a37; --coral: #ff5e5b; --highlight: #ffe066;
+  --space-1: 8px; --space-2: 16px; --space-3: 24px; --space-4: 48px;
+  --radius-web: 10px; --radius-sm: 8px; --radius-pill: 999px; --radius-web-btn: 5px;
+  --border-web: 2px; --border-web-pill: 1px;
+  --shadow-web: 4px 4px 0 0 #111111; --shadow-web-pill: 2px 2px 0 0 #111111; --shadow-web-sm: 3px 3px 0 0 #0a0a0a;
 }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) { --fond: #f7f7f9; --carte: #ffffff; --bord: #dcdfe6; --texte: #14171f; --doux: #5a6273; }
-}
+/* Ortland : titres en capitales. Repli Inter Black, que le système prescrit déjà sous 22px. */
+@font-face { font-family: Ortland; src: url("/fonts/Ortland.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--fond); color: var(--texte); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.enveloppe { max-width: 56rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
-header { border-bottom: 1px solid var(--bord); padding-bottom: 1.25rem; margin-bottom: 2rem; }
-h1 { font-size: 1.9rem; margin: 0 0 .35rem; letter-spacing: -.02em; }
-h1 span { color: var(--accent); }
-.sous { color: var(--doux); margin: 0; max-width: 42rem; }
-h2 { font-size: 1.1rem; margin: 2.5rem 0 .9rem; text-transform: uppercase; letter-spacing: .08em; color: var(--doux); }
-.chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .75rem; }
-.chiffre { background: var(--carte); border: 1px solid var(--bord); border-radius: 10px; padding: .85rem 1rem; }
-.chiffre b { display: block; font-size: 1.6rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.chiffre span { color: var(--doux); font-size: .82rem; }
-.fiche { background: var(--carte); border: 1px solid var(--bord); border-left: 3px solid var(--accent); border-radius: 10px; padding: .9rem 1.1rem; margin-bottom: .75rem; }
-.fiche.partiel { border-left-color: var(--attente); }
-.fiche h3 { margin: 0 0 .3rem; font-size: 1rem; }
-.fiche p { margin: .25rem 0; }
-.quand { color: var(--doux); font-size: .9rem; font-variant-numeric: tabular-nums; }
-.mesure { margin: .4rem 0 0; padding-left: .75rem; border-left: 2px solid var(--bord); color: var(--doux); font-size: .92rem; }
-.etiq { display: inline-block; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; padding: .12rem .45rem;
-  border-radius: 999px; border: 1px solid var(--bord); color: var(--doux); vertical-align: .1em; }
-a { color: inherit; text-decoration-color: var(--doux); text-underline-offset: 3px; }
-form { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-input, button { font: inherit; padding: .55rem .8rem; border-radius: 8px; border: 1px solid var(--bord); background: var(--carte); color: var(--texte); }
-input { flex: 1 1 18rem; min-width: 0; }
-button { cursor: pointer; border-color: var(--accent); }
-.vide { color: var(--doux); }
-.sha { font-family: var(--mono); font-size: .78rem; color: var(--doux); word-break: break-all; }
-footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--bord); color: var(--doux); font-size: .9rem; }
+html { background: var(--page-lavender); }
+body {
+  margin: 0; color: var(--ink-body); font: 400 16px/24px Inter, "Inter Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+/* Fond maillé du site : quatre taches floues sur mesh-base. Aucun texte ne se pose dessus sans carte, sauf le titre. */
+.mesh {
+  position: fixed; inset: 0; z-index: -1; background: var(--mesh-base); pointer-events: none;
+  background-image:
+    radial-gradient(34rem 26rem at 6% 0%, var(--mesh-pink) 0%, transparent 56%),
+    radial-gradient(36rem 28rem at 98% 4%, var(--mesh-blue) 0%, transparent 56%),
+    radial-gradient(32rem 28rem at 0% 94%, var(--mesh-violet) 0%, transparent 56%),
+    radial-gradient(20rem 17rem at 94% 98%, var(--mesh-mint) 0%, transparent 58%);
+  opacity: .85; filter: blur(60px);
+}
+.enveloppe { max-width: 64rem; margin: 0 auto; padding: var(--space-4) var(--space-2) 5rem; }
+
+h1 {
+  font-family: Ortland, Inter, system-ui, sans-serif; font-weight: 400; font-size: 48px; line-height: 1;
+  letter-spacing: -.01em; color: var(--ink-heading); margin: 0 0 var(--space-2);
+}
+h1 .point { color: var(--coral); }
+.chapeau { font-size: 18px; line-height: 28px; color: var(--ink-body); margin: 0; max-width: 44rem; }
+h2 {
+  font-family: Ortland, Inter, system-ui, sans-serif; font-weight: 400; font-size: 24px; line-height: 1.05;
+  color: var(--ink-heading); margin: var(--space-4) 0 var(--space-3);
+}
+@media (min-width: 640px) { h1 { font-size: 72px; } h2 { font-size: 30px; } }
+/* L'écart aligne le bouton sur le champ quand ils partagent une ligne ; empilés, il n'a plus lieu d'être. */
+@media (min-width: 560px) { form button { margin-top: 26px; } }
+
+/* Cartes : blanc, contour 2px, coins 10px. Les cartes de liste n'ont pas d'ombre, seulement leur contour. */
+.carte { background: var(--sticker-white); border: var(--border-web) solid var(--card-line); border-radius: var(--radius-web); padding: var(--space-3); }
+.chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-3); }
+.chiffre { box-shadow: var(--shadow-web); text-align: left; }
+.chiffre b { display: block; font-family: Ortland, Inter, system-ui, sans-serif; font-weight: 400; font-size: 44px; line-height: 1; color: var(--ink-heading); font-variant-numeric: tabular-nums; }
+.chiffre span { display: block; margin-top: var(--space-1); font-size: 14px; line-height: 20px; font-weight: 700; color: var(--ink-body); }
+
+.liste { display: grid; gap: var(--space-3); }
+.fiche h3 { margin: 0; font-size: 18px; line-height: 1.2; font-weight: 900; letter-spacing: -.01em; color: var(--ink-strong); }
+.fiche .quand { margin: var(--space-1) 0 0; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--ink-body); font-variant-numeric: tabular-nums; }
+.mesures { margin: var(--space-3) 0 0; padding: 0; list-style: none; display: grid; gap: var(--space-1); }
+.mesures li { background: var(--card-lavender); border-radius: var(--radius-sm); padding: 10px 12px; color: var(--ink-strong); font-size: 15px; line-height: 22px; }
+.pied { margin: var(--space-3) 0 0; font-size: 14px; line-height: 20px; }
+.pied a { color: var(--accent-violet); text-underline-offset: 3px; }
+
+/* Pastilles : card-yellow, contour 1px, capitales. Les états se lisent à la couleur ET au mot, jamais à la couleur seule. */
+.pastille {
+  display: inline-block; vertical-align: 2px; margin-left: var(--space-1); padding: 2px 10px;
+  background: var(--card-yellow); border: var(--border-web-pill) solid var(--ink-strong); border-radius: var(--radius-pill);
+  font-size: 11.5px; line-height: 1.4; font-weight: 700; letter-spacing: .02em; color: var(--ink-strong); white-space: nowrap;
+}
+.pastille.attente { background: var(--coral); }
+.pastille.absente { background: var(--card-mint); }
+
+form { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: flex-start; }
+label { display: block; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--ink-body); margin-bottom: 6px; }
+.champ { flex: 1 1 20rem; min-width: 0; }
+input {
+  width: 100%; font: inherit; padding: 11px 14px; color: var(--ink-strong); background: var(--sticker-white);
+  border: var(--border-web) solid var(--card-line); border-radius: var(--radius-web);
+}
+input::placeholder { color: var(--ink-body); opacity: .75; }
+button {
+  font: 800 14px/20px Inter, system-ui, sans-serif; cursor: pointer; padding: 12px 20px;
+  color: var(--ink-strong); background: var(--sticker-white);
+  border: var(--border-web) solid var(--ink-strong); border-radius: var(--radius-pill); box-shadow: var(--shadow-web-pill);
+}
+button:active { transform: translate(2px, 2px); box-shadow: none; }
+button[disabled] { cursor: progress; color: var(--ink-body); }
+:where(a, button, input):focus-visible { outline: 3px solid var(--accent-violet); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+.note { margin: 0; color: var(--ink-body); }
+.note strong { color: var(--ink-strong); }
+.sha { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 18px; color: var(--ink-body); word-break: break-all; }
+.marque { background: var(--highlight); border-radius: 3px; padding: 0 3px; color: var(--ink-strong); }
+.alerte { color: var(--hot); font-weight: 700; }
+footer { margin-top: var(--space-4); padding-top: var(--space-3); border-top: var(--border-web) solid var(--card-line); font-size: 14px; line-height: 22px; }
+.saut { position: absolute; left: -9999px; }
+.saut:focus { left: var(--space-2); top: var(--space-2); position: fixed; z-index: 2; background: var(--sticker-white);
+  border: var(--border-web) solid var(--ink-strong); border-radius: var(--radius-web-btn); padding: 10px 14px; box-shadow: var(--shadow-web-sm); }
