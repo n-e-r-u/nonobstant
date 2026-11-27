@@ -124,6 +124,41 @@ Ce qu'il faut sauvegarder : `DATA_DIR` en entier. La base se reconstruit en part
 
 Le paquet `poppler-utils` rend les recueils PDF lisibles. Sans lui la veille tourne, mais elle ne voit que les titres.
 
+### Sur un hébergement cPanel
+
+Possible, avec trois réserves à lever d'abord. En SSH :
+
+```sh
+node -v                 # il faut 22.13 ou plus récent, sinon le module node:sqlite n'existe pas
+which pdftotext         # absent sur la plupart des hébergements mutualisés
+```
+
+**La version de Node** se choisit dans « Setup Node.js App » (sélecteur CloudLinux) ou s'impose par le paquet EasyApache installé par l'hébergeur. En dessous de 22.13, le serveur refuse de démarrer et le dit.
+
+**Sans `pdftotext`**, la veille lit les titres des recueils mais pas leur contenu, c'est-à-dire l'essentiel. Un binaire statique de poppler déposé dans `~/bin` et ajouté au `PATH` du service lève la réserve.
+
+**Le processus est arrêté quand il ne sert plus.** Passenger, qui fait tourner les applications Node sous cPanel, endort l'application entre deux visites, donc la minuterie interne de la veille ne tourne pas. La veille se déclenche alors par une tâche planifiée (plus bas).
+
+Installation :
+
+1. **Dossier** : `git clone` du dépôt dans le dossier personnel, par exemple `~/nonobstant`, jamais sous `public_html`.
+2. **Enregistrement** : « Setup Node.js App », ou « Application Manager » selon le thème. Racine de l'application `nonobstant`, fichier de démarrage `server.js`, version de Node la plus récente proposée. Aucune dépendance à installer, donc le bouton d'installation npm ne sert à rien.
+3. **Variables** : `DATA_DIR=/home/<compte>/nonobstant-data` (hors du dossier de l'application, pour qu'une mise à jour n'y touche pas et que rien ne soit servi par le serveur web) et `API_KEY`, 24 caractères au moins. Créer le dossier : `mkdir -p ~/nonobstant-data`.
+4. **Démarrage**, puis vérification : `curl https://<domaine>/api/sante` doit répondre `{"ok":true,...}` et dire si `pdftotext` est là.
+5. **Veille**, dans « Tâches planifiées », toutes les 20 minutes :
+
+```sh
+curl -s -m 10 -X POST -H "X-API-Key: $API_KEY" https://<domaine>/api/veille/tour > /dev/null
+```
+
+Le délai court est voulu : la requête lance le tour, et le serveur le finit même après le raccrochage. Deux tours ne peuvent pas se chevaucher.
+
+6. **Sources** : une fois en place, ajouter les préfectures avec `POST /api/veille/sources/prefectures`.
+
+Mise à jour : `cd ~/nonobstant && git pull && mkdir -p tmp && touch tmp/restart.txt`.
+
+Ce qu'un hébergement mutualisé coûte : la lecture des PDF si poppler n'est pas installable, et un quota de fichiers que le coffre consomme à raison d'une copie par source. Une machine où le service tourne en continu évite les deux.
+
 ## Vérifications
 
 ```sh
