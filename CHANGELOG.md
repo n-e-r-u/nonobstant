@@ -1,5 +1,9 @@
 # Journal des versions
 
+## 0.5.2
+
+La détection de pdftotext ne testait que l'absence du binaire. Un binaire présent mais non exécutable était compté disponible, et l'état du serveur annonçait une lecture des PDF qui échouait ensuite à chaque recueil.
+
 ## 0.5.1
 
 Le serveur n'écoutait pas derrière Passenger : il ne démarrait que si son fichier était le module principal, ce qui est vrai sous systemd mais faux quand un script intermédiaire le charge. Les requêtes restaient alors sans réponse jusqu'à expiration du délai.

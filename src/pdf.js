@@ -7,8 +7,12 @@ const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
 
+// Un pdftotext utilisable peut sortir en code non nul sur -v, donc une erreur d'exécution ne suffit pas à conclure.
+// En revanche, absent (ENOENT) ou non exécutable (EACCES, EPERM), il ne servira jamais : le dire franchement,
+// un « oui » faux ferait croire que les recueils sont lus alors qu'ils échouent un par un.
+const INDISPONIBLE = new Set(['ENOENT', 'EACCES', 'EPERM', 'ENOEXEC']);
 let OK = false;
-execFile('pdftotext', ['-v'], { timeout: 5000 }, err => { OK = !err || err.code !== 'ENOENT'; });
+execFile('pdftotext', ['-v'], { timeout: 5000 }, err => { OK = !err || !INDISPONIBLE.has(err.code); });
 const pdfReady = () => OK;
 
 // Texte d'un PDF tenu en mémoire. pages : nombre de pages lues au plus (un recueil en compte parfois des centaines).
